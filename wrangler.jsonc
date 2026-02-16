@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tribamondo",
+  "main": "src/worker.tsx",
+  "compatibility_date": "2025-01-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+  "routes": [
+    { "pattern": "tribamondo.fr/*", "zone_name": "tribamondo.fr" },
+    { "pattern": "www.tribamondo.fr/*", "zone_name": "tribamondo.fr" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tribamondo",
+      "database_id": "10a2a744-3804-4a03-bf28-6983cc869ed5",
+      "preview_database_id": "preview"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "tribamondo-media"
+    }
+  ]
+}
