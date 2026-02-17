@@ -79,7 +79,7 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
         }`}
       >
         {concert.image_url && (
-          <div className="sm:hidden h-44 w-full overflow-hidden border-b border-white/5 relative">
+          <div className="md:hidden h-44 w-full overflow-hidden border-b border-white/5 relative">
             <img 
               src={concert.image_url} 
               alt="" 
@@ -120,7 +120,7 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
         <div className="flex flex-1 flex-col p-6">
           <div className="flex gap-6">
             {concert.image_url && (
-              <div className="hidden sm:block h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-black/40">
+              <div className="hidden md:block h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-black/40">
                 <img src={concert.image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
             )}
