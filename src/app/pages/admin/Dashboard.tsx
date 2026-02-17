@@ -49,30 +49,30 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen py-20">
       <div className="container max-w-6xl">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="font-display text-4xl font-bold mb-2">
+            <h1 className="font-display text-3xl font-bold mb-2 sm:text-4xl">
               Administration <span className="text-primary">TriBa MonDo</span>
             </h1>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-6 py-3 hover:bg-red-950/40 transition-all active:scale-95"
+            className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-5 py-2.5 hover:bg-red-950/40 transition-all active:scale-95 self-start sm:self-auto sm:px-6 sm:py-3"
           >
             <LogOut className="h-5 w-5" />
-            Déconnexion
+            <span className="text-sm sm:text-base">Déconnexion</span>
           </button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
           <a
             href="/admin/concerts"
-            className="group rounded-2xl border border-red-500/30 bg-black/50 p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
+            className="group rounded-2xl border border-red-500/30 bg-black/50 p-6 sm:p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
           >
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-950/50">
-              <Calendar className="h-8 w-8 text-primary" />
+            <div className="mb-3 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-950/50">
+              <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+            <h2 className="font-display text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
               Gestion des Concerts
             </h2>
             <p className="text-white/60">
@@ -82,12 +82,12 @@ export function AdminDashboard() {
 
           <a
             href="/admin/videos"
-            className="group rounded-2xl border border-red-500/30 bg-black/50 p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
+            className="group rounded-2xl border border-red-500/30 bg-black/50 p-6 sm:p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
           >
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-950/50">
-              <Video className="h-8 w-8 text-primary" />
+            <div className="mb-3 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-950/50">
+              <Video className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+            <h2 className="font-display text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
               Gestion des Vidéos
             </h2>
             <p className="text-white/60">
@@ -97,12 +97,12 @@ export function AdminDashboard() {
 
           <a
             href="/admin/soundcloud"
-            className="group rounded-2xl border border-red-500/30 bg-black/50 p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
+            className="group rounded-2xl border border-red-500/30 bg-black/50 p-6 sm:p-8 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20"
           >
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-950/50">
-              <Music className="h-8 w-8 text-primary" />
+            <div className="mb-3 sm:mb-4 inline-flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-950/50">
+              <Music className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
+            <h2 className="font-display text-xl sm:text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
               Gestion SoundCloud
             </h2>
             <p className="text-white/60">

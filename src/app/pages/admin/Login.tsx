@@ -36,8 +36,8 @@ export function AdminLogin() {
 
   return (
     <div className="flex min-h-screen items-center justify-center py-20">
-      <div className="w-full max-w-md rounded-2xl border border-red-500/30 bg-black/50 p-8 backdrop-blur-sm">
-        <h1 className="font-display text-4xl font-bold text-center mb-8">
+      <div className="w-full max-w-md rounded-2xl border border-red-500/30 bg-black/50 p-6 sm:p-8 backdrop-blur-sm mx-4 sm:mx-auto">
+        <h1 className="font-display text-3xl sm:text-4xl font-bold text-center mb-6 sm:mb-8">
           Admin <span className="text-primary">Login</span>
         </h1>
 

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { YouTubeVideo } from "@/types/database";
-import { Trash2, Edit, Plus, X, Save, ChevronLeft } from "lucide-react";
+import { Trash2, Edit, Plus, X, Save, ChevronLeft, LogOut } from "lucide-react";
 
 export function VideosAdmin() {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
@@ -25,6 +25,16 @@ export function VideosAdmin() {
       fetchVideos();
     } catch {
       window.location.href = "/admin/login";
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("admin_access");
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   }
 
@@ -121,23 +131,33 @@ export function VideosAdmin() {
             Retour au Dashboard
           </a>
         </div>
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-4xl font-bold">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold">
             Gestion des <span className="text-primary">Vidéos</span>
           </h1>
-          <button
-            onClick={handleNew}
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95"
-          >
-            <Plus className="h-5 w-5" />
-            Nouvelle Vidéo
-          </button>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-red-950/40 transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Déconnexion</span>
+            </button>
+            <button
+              onClick={handleNew}
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 sm:px-6 sm:py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Nouvelle Vidéo</span>
+              <span className="xs:hidden">Nouvelle</span>
+            </button>
+          </div>
         </div>
 
         {showForm && (
-          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-6 backdrop-blur-sm">
+          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold">
+              <h2 className="font-display text-xl sm:text-2xl font-bold">
                 {editing !== null ? "Modifier" : "Nouvelle"} Vidéo
               </h2>
               <button
@@ -223,7 +243,7 @@ export function VideosAdmin() {
           </div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           {videos.length === 0 ? (
             <div className="col-span-2 rounded-2xl border border-red-500/30 bg-black/50 p-12 text-center backdrop-blur-sm">
               <p className="text-white/50">Aucune vidéo pour le moment.</p>
@@ -243,7 +263,7 @@ export function VideosAdmin() {
                     className="h-full w-full"
                   />
                 </div>
-                <div className="flex flex-1 flex-col p-4">
+                <div className="flex flex-1 flex-col p-3 sm:p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-medium uppercase tracking-wider text-primary">
                       {video.type}

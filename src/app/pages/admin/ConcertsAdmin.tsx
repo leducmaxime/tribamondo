@@ -1,25 +1,30 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { Concert } from "@/types/database";
-import { Trash2, Edit, Plus, X, Save, ChevronLeft, Upload, Image as ImageIcon, Calendar } from "lucide-react";
+import { Trash2, Edit, Plus, X, Save, ChevronLeft, Upload, Image as ImageIcon, Calendar, LogOut } from "lucide-react";
 
 function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; onEdit: (c: Concert) => void; onDelete: (id: number) => void; isPast?: boolean }) {
   return (
     <div
-      className={`rounded-2xl border p-6 backdrop-blur-sm transition-all ${
+      className={`rounded-2xl border overflow-hidden backdrop-blur-sm transition-all ${
         isPast 
           ? "border-white/5 bg-white/[0.01] opacity-60" 
           : "border-red-500/30 bg-black/50 hover:border-primary hover:bg-red-950/40 shadow-lg shadow-primary/5"
       }`}
     >
-      <div className="flex items-start justify-between">
+      {concert.image_url && (
+        <div className={`sm:hidden h-44 w-full overflow-hidden ${isPast ? "grayscale" : ""}`}>
+          <img src={concert.image_url} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between p-4 sm:p-6">
         {concert.image_url && (
-          <div className={`mr-6 h-24 w-24 shrink-0 overflow-hidden rounded-lg border ${isPast ? "border-white/10 grayscale" : "border-red-500/20"}`}>
+          <div className={`hidden sm:block sm:mr-6 sm:h-24 sm:w-24 shrink-0 overflow-hidden rounded-lg border ${isPast ? "border-white/10 grayscale" : "border-red-500/20"}`}>
             <img src={concert.image_url} alt="" className="h-full w-full object-cover" />
           </div>
         )}
-        <div className="flex-1">
-          <div className="flex items-center gap-4 mb-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2">
             <span className={`text-sm font-bold ${isPast ? "text-white/40" : "text-primary"}`}>
               {concert.date}
             </span>
@@ -27,8 +32,8 @@ function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; o
               {concert.dayOfWeek} • {concert.time}
             </span>
           </div>
-          <h3 className={`font-display text-2xl font-bold mb-2 ${isPast ? "text-white/50" : "text-white"}`}>{concert.title}</h3>
-          <p className="text-white/70 mb-1 font-medium">{concert.venue}</p>
+          <h3 className={`font-display text-xl sm:text-2xl font-bold mb-2 ${isPast ? "text-white/50" : "text-white"}`}>{concert.title}</h3>
+          <p className="text-white/70 mb-1 font-medium text-sm sm:text-base">{concert.venue}</p>
           <p className="text-xs text-white/40 italic mb-3">{concert.address}</p>
           {concert.description && (
             <p className="text-sm text-white/50 line-clamp-2 mb-3">{concert.description}</p>
@@ -48,22 +53,22 @@ function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; o
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-end sm:self-start">
           <button
             onClick={() => onEdit(concert)}
-            className={`rounded-full border p-3 transition-colors ${
+            className={`rounded-full border p-2.5 sm:p-3 transition-colors ${
               isPast ? "border-white/5 bg-white/5 hover:bg-white/10 text-white/30" : "border-red-500/30 bg-black/40 hover:bg-red-950/40 text-white"
             }`}
           >
-            <Edit className="h-5 w-5" />
+            <Edit className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <button
             onClick={() => onDelete(concert.id!)}
-            className={`rounded-full border p-3 transition-colors ${
+            className={`rounded-full border p-2.5 sm:p-3 transition-colors ${
               isPast ? "border-white/5 bg-white/5 hover:bg-white/10 text-white/30" : "border-red-500/30 bg-black/40 hover:bg-red-950/40 text-white"
             }`}
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
@@ -97,6 +102,16 @@ export function ConcertsAdmin() {
       fetchConcerts();
     } catch {
       window.location.href = "/admin/login";
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("admin_access");
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   }
 
@@ -245,21 +260,31 @@ export function ConcertsAdmin() {
             Retour au Dashboard
           </a>
         </div>
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-4xl font-bold">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold">
             Gestion des <span className="text-primary">Concerts</span>
           </h1>
-          <button
-            onClick={handleNew}
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95"
-          >
-            <Plus className="h-5 w-5" />
-            Nouveau Concert
-          </button>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-red-950/40 transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Déconnexion</span>
+            </button>
+            <button
+              onClick={handleNew}
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 sm:px-6 sm:py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Nouveau Concert</span>
+              <span className="xs:hidden">Nouveau</span>
+            </button>
+          </div>
         </div>
 
         {showForm && (
-          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-6 backdrop-blur-sm">
+            <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-2xl font-bold">
                 {editing !== null ? "Modifier" : "Nouveau"} Concert
@@ -291,7 +316,7 @@ export function ConcertsAdmin() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-white/80">Date</label>
                     <input
@@ -322,7 +347,7 @@ export function ConcertsAdmin() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-white/80">Jour</label>
                     <input
@@ -464,8 +489,8 @@ export function ConcertsAdmin() {
         <div className="space-y-12">
           {/* Upcoming Section */}
           <div>
-            <h2 className="mb-6 flex items-center gap-3 font-display text-2xl font-bold">
-              <Calendar className="h-6 w-6 text-primary" />
+            <h2 className="mb-4 sm:mb-6 flex items-center gap-3 font-display text-xl sm:text-2xl font-bold">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Concerts <span className="text-primary">à venir</span>
             </h2>
             <div className="space-y-4">
@@ -483,7 +508,7 @@ export function ConcertsAdmin() {
 
           {/* Past Section */}
           <div className="pt-8 border-t border-white/5">
-            <h2 className="mb-6 flex items-center gap-3 font-display text-2xl font-bold opacity-50">
+            <h2 className="mb-4 sm:mb-6 flex items-center gap-3 font-display text-xl sm:text-2xl font-bold opacity-50">
               <ChevronLeft className="h-6 w-6 text-white/40 rotate-180" />
               Archives <span className="text-white/40">passées</span>
             </h2>

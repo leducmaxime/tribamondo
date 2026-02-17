@@ -113,6 +113,24 @@ const app = defineApp([
     }
   }),
 
+  route("/api/auth/logout", async (info: any) => {
+    const { request } = info;
+    if (request.method !== "POST") {
+      return new Response(JSON.stringify({ success: false, error: "Method not allowed" }), {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": "auth_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0",
+      },
+    });
+  }),
+
   route("/api/concerts", async (info: any) => {
     const env = (globalThis as any).__WORKER_ENV__;
     const { request } = info;

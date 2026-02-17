@@ -32,16 +32,5 @@
       "binding": "MEDIA",
       "bucket_name": "tribamondo-media"
     }
-  ],
-  "env": {
-    "staging": {
-      "name": "tribamondo-staging",
-      "vars": {
-        "ENVIRONMENT": "staging"
-      },
-      "routes": [
-        { "pattern": "staging.tribamondo.fr/*", "zone_name": "tribamondo.fr" }
-      ]
-    }
-  }
+  ]
 }

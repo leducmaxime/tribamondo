@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { SoundCloudTrack } from "@/types/database";
-import { Trash2, Edit, Plus, X, Save, ChevronLeft, Music } from "lucide-react";
+import { Trash2, Edit, Plus, X, Save, ChevronLeft, Music, LogOut } from "lucide-react";
 
 export function SoundCloudAdmin() {
   const [tracks, setTracks] = useState<SoundCloudTrack[]>([]);
@@ -25,6 +25,16 @@ export function SoundCloudAdmin() {
       fetchTracks();
     } catch {
       window.location.href = "/admin/login";
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("admin_access");
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   }
 
@@ -109,23 +119,33 @@ export function SoundCloudAdmin() {
             Retour au Dashboard
           </a>
         </div>
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-4xl font-bold">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold">
             Gestion <span className="text-primary">SoundCloud</span>
           </h1>
-          <button
-            onClick={handleNew}
-            className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95"
-          >
-            <Plus className="h-5 w-5" />
-            Ajouter un son
-          </button>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-red-950/40 transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Déconnexion</span>
+            </button>
+            <button
+              onClick={handleNew}
+              className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 sm:px-6 sm:py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95 text-sm sm:text-base"
+            >
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xs:inline">Ajouter un son</span>
+              <span className="xs:hidden">Ajouter</span>
+            </button>
+          </div>
         </div>
 
         {showForm && (
-          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-6 backdrop-blur-sm">
+          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold">
+              <h2 className="font-display text-xl sm:text-2xl font-bold">
                 {editing !== null ? "Modifier" : "Nouveau"} Morceau
               </h2>
               <button
@@ -208,12 +228,12 @@ export function SoundCloudAdmin() {
                 key={track.id}
                 className="group flex flex-col overflow-hidden rounded-2xl border border-red-500/30 bg-black/50 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40"
               >
-                <div className="flex flex-col md:flex-row p-6 gap-6">
-                  <div className="flex-1">
+                <div className="flex flex-col md:flex-row p-4 sm:p-6 gap-4 sm:gap-6">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-white/40">#{track.order_index}</span>
                     </div>
-                    <h3 className="font-display text-xl font-semibold mb-2">{track.title}</h3>
+                    <h3 className="font-display text-lg sm:text-xl font-semibold mb-2">{track.title}</h3>
                     {track.description && (
                       <p className="text-sm text-white/50 mb-4">{track.description}</p>
                     )}
