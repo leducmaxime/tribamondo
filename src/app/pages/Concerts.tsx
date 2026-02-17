@@ -78,6 +78,16 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
             : "border-white/10 bg-white/[0.02] hover:border-primary/50 hover:bg-red-950/[0.05] hover:shadow-[0_0_40px_rgba(220,38,38,0.08)]"
         }`}
       >
+        {concert.image_url && (
+          <div className="sm:hidden h-44 w-full overflow-hidden border-b border-white/5 relative">
+            <img 
+              src={concert.image_url} 
+              alt="" 
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          </div>
+        )}
         <div className={`flex items-center justify-between border-b border-white/5 px-6 py-6 transition-colors duration-500 ${!concert.isPast ? "bg-white/[0.03] group-hover:bg-primary/5" : ""}`}>
           <div className="flex items-center gap-5">
             <div className={`relative flex h-16 w-16 items-center justify-center rounded-xl border transition-all duration-500 ${
