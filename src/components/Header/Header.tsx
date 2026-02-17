@@ -89,7 +89,7 @@ export function Header() {
           </div>
           <div className="flex w-full items-center justify-between px-4">
             <div className="w-full">
-              <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3 lg:hidden">
+              <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1 lg:hidden pr-2">
                 <a
                   href="/admin"
                   aria-label="Administration"
