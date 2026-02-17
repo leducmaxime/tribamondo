@@ -30,7 +30,7 @@ export function Contact() {
       <ScrollUp />
 
       {/* Hero */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-20 md:min-h-[60vh]">
+      <section className="relative flex min-h-[35vh] items-center justify-center overflow-hidden pt-20 md:min-h-[60vh]">
         <div className="absolute inset-0">
           <img
             src="/images/galerie/concert-contact.png"

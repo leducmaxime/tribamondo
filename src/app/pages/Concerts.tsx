@@ -198,7 +198,7 @@ export function Concerts({ concerts: dbConcerts }: { concerts?: Concert[] }) {
     <div className="flex flex-col">
       <ScrollUp />
 
-      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden pt-20">
+      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-20 md:min-h-[50vh]">
         <div className="absolute inset-0">
           <img
             src="/images/galerie/concert-4.png"
