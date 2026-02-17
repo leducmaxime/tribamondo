@@ -90,6 +90,13 @@ export function Header() {
           <div className="flex w-full items-center justify-between px-4">
             <div className="w-full">
               <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3 lg:hidden">
+                <a
+                  href="/admin"
+                  aria-label="Administration"
+                  className="flex items-center justify-center p-2 text-white/60 hover:text-primary transition-colors"
+                >
+                  <User className="h-6 w-6" />
+                </a>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -114,13 +121,6 @@ export function Header() {
                     }`}
                   />
                 </button>
-                <a
-                  href="/admin"
-                  aria-label="Administration"
-                  className="flex items-center justify-center p-2 text-white/60 hover:text-primary transition-colors"
-                >
-                  <User className="h-6 w-6" />
-                </a>
               </div>
               <nav
                 ref={navRef}
