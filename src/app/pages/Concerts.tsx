@@ -313,9 +313,9 @@ export function Concerts({ concerts: dbConcerts }: { concerts?: Concert[] }) {
                       <div className="absolute left-[14px] z-10 h-2.5 w-2.5 rounded-full bg-primary/80 ring-4 ring-black md:left-1/2 md:-ml-1.25" />
                       
                       <div className={`ml-12 w-28 shrink-0 text-left md:ml-0 md:w-1/2 ${index % 2 === 0 ? 'md:pl-12' : 'md:pr-12 md:text-right'}`}>
-                        <span className="block text-lg font-bold text-white leading-none">{concert.date.split(" ").slice(0, 2).join(" ")}</span>
-                        <span className="mt-1 block text-xs font-bold uppercase tracking-[0.2em] text-primary">{concert.date.split(" ")[2] || "2019"}</span>
-                        <span className="text-[11px] font-medium text-white/50">{concert.dayOfWeek}</span>
+                        <span className="block text-sm font-bold text-primary tracking-widest">
+                          {parseDate(concert.date).toLocaleDateString('fr-FR')}
+                        </span>
                       </div>
                       
                       <div className={`hidden flex-1 md:block ${index % 2 === 0 ? 'pr-12 text-right' : 'pl-12 text-left'}`}>
