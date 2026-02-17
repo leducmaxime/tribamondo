@@ -89,30 +89,39 @@ export function Header() {
           </div>
           <div className="flex w-full items-center justify-between px-4">
             <div className="w-full">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setNavbarOpen(!navbarOpen);
-                }}
-                aria-label="Menu mobile"
-                className="absolute right-4 top-1/2 block -translate-y-1/2 rounded-full px-3 py-[6px] ring-primary focus:ring-2 lg:hidden"
-              >
-                <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-white transition-all duration-300 ${
-                    navbarOpen ? "top-[7px] rotate-45" : ""
-                  }`}
-                />
-                <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-white transition-all duration-300 ${
-                    navbarOpen ? "opacity-0" : ""
-                  }`}
-                />
-                <span
-                  className={`relative my-1.5 block h-0.5 w-[30px] bg-white transition-all duration-300 ${
-                    navbarOpen ? "top-[-8px] -rotate-45" : ""
-                  }`}
-                />
-              </button>
+              <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-3 lg:hidden">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNavbarOpen(!navbarOpen);
+                  }}
+                  aria-label="Menu mobile"
+                  className="block rounded-full p-2 ring-primary focus:ring-2"
+                >
+                  <span
+                    className={`relative my-1.5 block h-0.5 w-[25px] bg-white transition-all duration-300 ${
+                      navbarOpen ? "top-[7px] rotate-45" : ""
+                    }`}
+                  />
+                  <span
+                    className={`relative my-1.5 block h-0.5 w-[25px] bg-white transition-all duration-300 ${
+                      navbarOpen ? "opacity-0" : ""
+                    }`}
+                  />
+                  <span
+                    className={`relative my-1.5 block h-0.5 w-[25px] bg-white transition-all duration-300 ${
+                      navbarOpen ? "top-[-8px] -rotate-45" : ""
+                    }`}
+                  />
+                </button>
+                <a
+                  href="/admin"
+                  aria-label="Administration"
+                  className="flex items-center justify-center p-2 text-white/60 hover:text-primary transition-colors"
+                >
+                  <User className="h-6 w-6" />
+                </a>
+              </div>
               <nav
                 ref={navRef}
                 className={`absolute right-0 z-30 w-[250px] rounded-lg border border-red-500/20 bg-[#0d0d0d]/95 px-6 py-4 backdrop-blur-md duration-300 lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
