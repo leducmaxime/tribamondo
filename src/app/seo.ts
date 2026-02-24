@@ -6,13 +6,17 @@ export interface PageSEO {
   description: string;
   keywords: string[];
   path: string;
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
 export const pageSEO: Record<string, PageSEO> = {
   "/": {
-    title: "TriBa MonDo - Fusion Musicale | Chants & Musiques du Monde",
+    title: "TriBa MonDo - Fusions ancestrales x électro organique",
+    ogTitle: "TriBa MonDo",
+    ogDescription: "Fusions ancestrales x électro organique",
     description:
-      "TriBa MonDo, groupe parisien de fusion musicale fondé en 2018. Chants du monde, percussions, voix, oud et textures électroniques. Traditions méditerranéennes, brésiliennes et du monde réinventées.",
+      "Trio musical qui fait dialoguer chants sources du monde et création originale avec une énergie électro contemporaine. Voix, percussions et textures électroniques s'entrelacent pour créer une pulsation organique, ancrée dans la mémoire et résolument actuelle.",
     keywords: [
       "Triba Mondo",
       "musique du monde",
@@ -92,7 +96,7 @@ export const groupInfo = {
   description:
     "Groupe parisien de fusion musicale. Chants du monde, percussions, voix et textures électroniques. Traditions & innovations réinventées depuis 2018.",
   url: SITE_URL,
-  email: "tribamondo@gmail.com",
+  email: "contact@tribamondo.fr",
   address: {
     addressLocality: "Champigny-sur-Marne",
     postalCode: "94500",

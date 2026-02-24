@@ -102,10 +102,10 @@ export function Footer() {
             </div>
             <p className="mt-6 text-sm text-white/50">
               <a
-                href="mailto:tribamondo@gmail.com"
+                href="mailto:contact@tribamondo.fr"
                 className="transition-colors hover:text-primary"
               >
-                tribamondo@gmail.com
+                contact@tribamondo.fr
               </a>
             </p>
           </div>

@@ -1,5 +1,6 @@
 import { ScrollUp } from "@/components/common/ScrollUp";
-import { Send, ExternalLink } from "lucide-react";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
+import { Send, ExternalLink, Download } from "lucide-react";
 
 const socialLinks = [
   {
@@ -39,7 +40,7 @@ export function Contact() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/95" />
         </div>
-        <div className="container relative z-10 pt-20 pb-0 text-center md:py-20">
+        <div className="container relative z-10 py-20 text-center">
           <p className="electro-glitch mb-4 text-sm font-medium uppercase tracking-[0.3em] text-primary/80" data-text="Restons en contact">
             Restons en contact
           </p>
@@ -57,6 +58,32 @@ export function Contact() {
       <section className="border-t border-red-500/30 bg-gradient-to-b from-red-950/30 via-red-950/20 to-black pt-4 pb-24 md:pt-12">
         <div className="container">
           <div className="mx-auto max-w-2xl">
+            <div className="mb-8 flex flex-wrap justify-center gap-x-8 gap-y-4">
+              <a
+                href="/documents/triba-mondo.pdf"
+                download
+                className="electro-cta group inline-flex items-center gap-2 text-sm text-primary transition-all"
+              >
+                <Download className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
+                TriBa MonDo
+              </a>
+              <a
+                href="/documents/setlist-tribamondo.pdf"
+                download
+                className="electro-cta group inline-flex items-center gap-2 text-sm text-primary transition-all"
+              >
+                <Download className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
+                Setlist
+              </a>
+              <a
+                href="/documents/tech-rider-tribamondo.pdf"
+                download
+                className="electro-cta group inline-flex items-center gap-2 text-sm text-primary transition-all"
+              >
+                <Download className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
+                Fiche Technique
+              </a>
+            </div>
             <div className="rounded-2xl border border-red-500/30 bg-black/50 backdrop-blur-sm p-8 md:p-12">
               <p className="mb-6 text-center text-sm text-white/60">
                 Pour toute demande de booking, collaboration ou information
@@ -131,10 +158,10 @@ export function Contact() {
               <p className="mt-6 text-center text-sm text-white/40">
                 Ou écrivez-nous directement à{" "}
                 <a
-                  href="mailto:tribamondo@gmail.com"
+                  href="mailto:contact@tribamondo.fr"
                   className="text-primary transition-colors hover:text-primary-light"
                 >
-                  tribamondo@gmail.com
+                  contact@tribamondo.fr
                 </a>
               </p>
             </div>
@@ -175,6 +202,7 @@ export function Contact() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }
