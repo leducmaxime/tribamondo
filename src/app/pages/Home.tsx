@@ -50,25 +50,25 @@ export function Home() {
             src="/images/galerie/concert-1.png"
             alt="TriBa MonDo en concert"
             className="h-full w-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
         </div>
 
-        <div className="container relative z-10 px-4 text-center">
+        <div className="container relative z-10 px-4 pt-20 sm:pt-24 text-center">
           <div className="mx-auto max-w-4xl">
             <p
-              className="electro-glitch mb-6 text-sm font-medium uppercase tracking-[0.3em] text-primary/80"
+              className="electro-glitch mb-3 sm:mb-6 text-lg sm:text-base md:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-primary drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]"
               data-text="Fusions ancestrales x électro organique"
             >
-              <span className="md:hidden">
+              <span className="block sm:hidden">
                 Fusions ancestrales
                 <br />
-                x
-                <br />
-                électro organique
+                x électro organique
               </span>
-              <span className="hidden md:inline">
+              <span className="hidden sm:inline">
                 Fusions ancestrales x électro organique
               </span>
             </p>
@@ -76,13 +76,13 @@ export function Home() {
               <span className="text-primary">TriBa</span>{" "}
               <span className="text-white">MonDo</span>
             </h1>
-            <div className="neon-halo-container mx-auto mt-8 max-w-2xl">
+            <div className="neon-halo-container mx-auto mt-4 sm:mt-8 max-w-2xl">
               <p className="neon-glow-text text-lg leading-relaxed md:text-xl">
                 Trio musical qui fait dialoguer chants sources du monde et création originale avec une énergie électro contemporaine. Voix, percussions et textures électroniques s’entrelacent pour créer une pulsation organique, ancrée dans la mémoire et résolument actuelle.
               </p>
               <div className="neon-halo" aria-hidden="true" />
             </div>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="mt-10 mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row md:mb-20">
               <a
                 href="/musique#videos"
                 className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-base font-semibold text-black transition-all hover:bg-primary-light hover:shadow-lg hover:shadow-primary/20"
@@ -101,8 +101,8 @@ export function Home() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-12 w-12 text-primary/60" strokeWidth={1.5} />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce md:bottom-8">
+          <ChevronDown className="h-10 w-10 text-primary/60 md:h-12 md:w-12" strokeWidth={1.5} />
         </div>
       </section>
 
@@ -211,6 +211,7 @@ export function Home() {
           src="/images/galerie/image-49.png"
           alt="TriBa MonDo - Chants du monde et fusion organique"
           className="h-full w-full object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
       </section>
