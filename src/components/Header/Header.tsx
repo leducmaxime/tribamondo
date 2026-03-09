@@ -1,40 +1,72 @@
 "use client";
 
-import { useState, useEffect, useRef, useSyncExternalStore } from "react";
-import { Instagram, Facebook, Youtube, User } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Instagram, Facebook, Youtube, Linkedin, User, LogOut, LayoutDashboard } from "lucide-react";
+import { usePathname } from "@/lib/hooks";
 
 const menuData = [
   { id: 1, title: "Le Groupe", path: "/legroupe" },
   { id: 2, title: "Musique", path: "/musique" },
   { id: 3, title: "Concerts", path: "/concerts" },
-  { id: 4, title: "Contact", path: "/contact" },
+  { id: 4, title: "Photos", path: "/photos" },
+  { id: 5, title: "Contact", path: "/contact" },
 ];
 
-function usePathname() {
-  return useSyncExternalStore(
-    (callback) => {
-      window.addEventListener("popstate", callback);
 
-      const originalPushState = history.pushState.bind(history);
-      const originalReplaceState = history.replaceState.bind(history);
+type UserMenuDropdownProps = {
+  isAdmin: boolean;
+  userMenuOpen: boolean;
+  setUserMenuOpen: (open: boolean) => void;
+  handleLogout: () => void;
+};
 
-      history.pushState = (...args) => {
-        originalPushState(...args);
-        callback();
-      };
-      history.replaceState = (...args) => {
-        originalReplaceState(...args);
-        callback();
-      };
-
-      return () => {
-        window.removeEventListener("popstate", callback);
-        history.pushState = originalPushState;
-        history.replaceState = originalReplaceState;
-      };
-    },
-    () => window.location.pathname,
-    () => "/",
+function UserMenuDropdown({ isAdmin, userMenuOpen, setUserMenuOpen, handleLogout }: UserMenuDropdownProps) {
+  return (
+    <div data-user-menu className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setUserMenuOpen(!userMenuOpen); }}
+        aria-label="Menu utilisateur"
+        aria-expanded={userMenuOpen}
+        className="flex items-center justify-center p-1 text-white/60 hover:text-primary transition-colors"
+      >
+        <User className="h-5 w-5" />
+      </button>
+      {userMenuOpen && (
+        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-red-500/20 bg-[#0d0d0d]/95 backdrop-blur-md shadow-xl py-1 z-[9999]">
+          {isAdmin ? (
+            <>
+              <a
+                href="/admin"
+                onClick={() => setUserMenuOpen(false)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:text-primary hover:bg-red-950/30 transition-colors"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Tableau de bord
+              </a>
+              <div className="border-t border-red-500/20 my-1" />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <a
+              href="/admin/login"
+              onClick={() => setUserMenuOpen(false)}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm text-white/70 hover:text-primary hover:bg-red-950/30 transition-colors"
+            >
+              <User className="h-4 w-4" />
+              Se connecter
+            </a>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -42,11 +74,25 @@ export function Header() {
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const currentPath = usePathname();
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setIsAdmin(localStorage.getItem("admin_access") === "true");
+
+    fetch("/api/auth/check")
+      .then((r) => r.json())
+      .then((data) => {
+        const { authenticated } = data as { authenticated: boolean };
+        setIsAdmin(authenticated);
+        if (authenticated) {
+          localStorage.setItem("admin_access", "true");
+        } else {
+          localStorage.removeItem("admin_access");
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -66,6 +112,28 @@ export function Header() {
     document.addEventListener("click", handleClickAway);
     return () => document.removeEventListener("click", handleClickAway);
   }, []);
+
+  useEffect(() => {
+    const handleClickAway = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest("[data-user-menu]")) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickAway);
+    return () => document.removeEventListener("click", handleClickAway);
+  }, []);
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("admin_access");
+      setIsAdmin(false);
+      setUserMenuOpen(false);
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  }
 
   return (
     <header
@@ -90,14 +158,26 @@ export function Header() {
           <div className="flex w-full items-center justify-between px-4">
             <div className="w-full">
               <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-1 lg:hidden pr-2">
-                <a
-                  href="/admin"
-                  aria-label="Administration"
-                  className="flex items-center justify-center p-2 text-white/60 hover:text-primary transition-colors"
-                >
-                  <User className="h-6 w-6" />
-                </a>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white/70 hover:text-red-400 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Déconnexion
+                  </button>
+                ) : (
+                  <a
+                    href="/admin/login"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white/70 hover:text-primary transition-colors"
+                  >
+                    <User className="h-4 w-4" />
+                    Connexion
+                  </a>
+                )}
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setNavbarOpen(!navbarOpen);
@@ -124,7 +204,7 @@ export function Header() {
               </div>
               <nav
                 ref={navRef}
-                className={`absolute right-0 z-30 w-[250px] rounded-lg border border-red-500/20 bg-[#0d0d0d]/95 px-6 py-4 backdrop-blur-md duration-300 lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
+                className={`absolute left-0 right-0 z-30 w-full border-t border-red-500/20 bg-[#0d0d0d]/95 px-6 py-4 backdrop-blur-md duration-300 lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
                   navbarOpen
                     ? "visible top-full opacity-100"
                     : "invisible top-[120%] opacity-0"
@@ -185,23 +265,22 @@ export function Header() {
                 <Youtube className="h-5 w-5" />
               </a>
               <a
-                href="https://soundcloud.com/tribamondo"
+                href="https://www.linkedin.com/company/triba-mondo/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="SoundCloud"
+                aria-label="LinkedIn"
                 className="text-white/60 hover:text-primary transition-colors"
               >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.56 8.87V17h8.76c1.85-.13 2.68-1.27 2.68-2.5 0-1.65-1.34-3-3-3-.23 0-.45.03-.66.08C18.94 8.83 16.65 7 14 7c-.89 0-1.72.24-2.44.67v1.2zM7 17h1V8.5H7V17zm-2 0h1V9.5H5V17zm-2 0h1v-4H3v4zm-2 0h1v-2H1v2z" />
-                </svg>
+                <Linkedin className="h-5 w-5" />
               </a>
-              <a
-                href="/admin"
-                aria-label="Administration"
-                className="text-white/60 hover:text-primary transition-colors ml-2"
-              >
-                <User className="h-5 w-5" />
-              </a>
+              <div className="ml-2">
+                <UserMenuDropdown
+                  isAdmin={isAdmin}
+                  userMenuOpen={userMenuOpen}
+                  setUserMenuOpen={setUserMenuOpen}
+                  handleLogout={handleLogout}
+                />
+              </div>
             </div>
           </div>
         </div>

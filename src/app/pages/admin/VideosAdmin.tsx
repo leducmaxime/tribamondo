@@ -1,49 +1,139 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { YouTubeVideo } from "@/types/database";
-import { Trash2, Edit, Plus, X, Save, ChevronLeft, LogOut } from "lucide-react";
+import { useRequireAuth } from "@/app/hooks/useRequireAuth";
+import { Toast } from "@/app/components/admin/Toast";
+import { ConfirmModal } from "@/app/components/admin/ConfirmModal";
+import { Trash2, Edit, Plus, X, Save, ChevronLeft, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+interface SortableVideoProps {
+  video: YouTubeVideo;
+  onEdit: (video: YouTubeVideo) => void;
+  onDelete: (id: number) => void;
+}
+
+function SortableVideo({ video, onEdit, onDelete }: SortableVideoProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: video.id! });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group overflow-hidden rounded-xl border border-red-500/30 bg-black/50 backdrop-blur-sm transition-all hover:border-primary ${
+        isDragging ? "opacity-50 scale-[1.02] shadow-2xl shadow-primary/20" : ""
+      }`}
+    >
+      <div className="relative aspect-video bg-black">
+        <img
+          src={`https://img.youtube.com/vi/${video.youtube_id}/hqdefault.jpg`}
+          alt={video.title}
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity px-2 pb-2">
+          <span className="text-xs text-white/90 line-clamp-1">{video.title}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1 p-1.5">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing rounded p-1.5 hover:bg-white/10 transition-colors"
+          style={{ touchAction: 'none' }}
+          title="Réordonner"
+        >
+          <GripVertical className="h-4 w-4 text-white/40" />
+        </button>
+        <button
+          onClick={() => onEdit(video)}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-500/20 bg-black/40 py-1.5 hover:bg-red-950/40 transition-colors"
+        >
+          <Edit className="h-3.5 w-3.5" />
+          <span className="text-xs">Modifier</span>
+        </button>
+        <button
+          onClick={() => onDelete(video.id!)}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-500/20 bg-black/40 py-1.5 hover:bg-red-950/40 transition-colors"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span className="text-xs">Supprimer</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function VideosAdmin() {
+  const { ready } = useRequireAuth();
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Partial<YouTubeVideo>>({});
+  const [toast, setToast] = useState<{ message: string; type?: "success" | "error" } | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    if (!ready) return;
 
-  async function checkAuth() {
-    try {
-      const res = await fetch("/api/auth/check");
-      const data = await res.json() as { authenticated: boolean };
-      if (!data.authenticated) {
-        window.location.href = "/admin/login";
-        return;
-      }
-      fetchVideos();
-    } catch {
-      window.location.href = "/admin/login";
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.removeItem("admin_access");
-      window.location.href = "/admin/login";
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  }
+    fetchVideos();
+  }, [ready]);
 
   async function fetchVideos() {
+    setLoading(true);
     try {
       const res = await fetch("/api/videos");
       const data = await res.json() as { success: boolean; data: YouTubeVideo[] };
       if (data.success) {
-        setVideos(data.data);
+        setVideos(data.data.sort((a, b) => a.order_index - b.order_index));
       }
     } catch (error) {
       console.error("Failed to fetch videos", error);
@@ -62,6 +152,9 @@ export function VideosAdmin() {
         const urlObj = new URL(youtube_id);
         if (youtube_id.includes("youtu.be")) {
           youtube_id = urlObj.pathname.slice(1);
+        } else if (youtube_id.includes("/shorts/")) {
+          const parts = urlObj.pathname.split("/");
+          youtube_id = parts[parts.indexOf("shorts") + 1] || youtube_id;
         } else {
           youtube_id = urlObj.searchParams.get("v") || youtube_id;
         }
@@ -82,20 +175,66 @@ export function VideosAdmin() {
         setForm({});
         setEditing(null);
         setShowForm(false);
+        setToast({ message: editing !== null ? "Vidéo mise à jour ✓" : "Vidéo enregistrée ✓" });
+      } else {
+        setToast({ message: "Erreur lors de l'opération", type: "error" });
       }
     } catch (error) {
       console.error("Failed to save video", error);
+      setToast({ message: "Erreur lors de l'opération", type: "error" });
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette vidéo ?")) return;
+  function handleDelete(id: number) {
+    setConfirmId(id);
+  }
 
+  async function doDelete(id: number) {
     try {
-      await fetch(`/api/videos/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/videos/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        setToast({ message: "Erreur lors de l'opération", type: "error" });
+        return;
+      }
       await fetchVideos();
+      setToast({ message: "Vidéo supprimée ✓" });
+    } catch {
+      setToast({ message: "Erreur lors de l'opération", type: "error" });
+    }
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setVideos((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+
+        const updatedVideos = newItems.map((video, index) => ({
+          ...video,
+          order_index: index,
+        }));
+
+        saveOrder(updatedVideos);
+
+        return updatedVideos;
+      });
+    }
+  }
+
+  async function saveOrder(updatedVideos: YouTubeVideo[]) {
+    try {
+      await fetch("/api/videos/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          order: updatedVideos.map((v) => ({ id: v.id, order_index: v.order_index })),
+        }),
+      });
     } catch (error) {
-      console.error("Failed to delete video", error);
+      console.error("Failed to save order", error);
     }
   }
 
@@ -103,10 +242,11 @@ export function VideosAdmin() {
     setForm(video);
     setEditing(video.id!);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleNew() {
-    setForm({ order_index: videos.length + 1 });
+    setForm({ order_index: videos.length });
     setEditing(null);
     setShowForm(true);
   }
@@ -137,13 +277,6 @@ export function VideosAdmin() {
           </h1>
           <div className="flex items-center gap-3 sm:gap-4">
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-red-950/40 transition-all active:scale-95 text-sm sm:text-base"
-            >
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden xs:inline">Déconnexion</span>
-            </button>
-            <button
               onClick={handleNew}
               className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 sm:px-6 sm:py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95 text-sm sm:text-base"
             >
@@ -153,6 +286,11 @@ export function VideosAdmin() {
             </button>
           </div>
         </div>
+
+        <p className="text-white/50 mb-6 text-sm">
+          <GripVertical className="inline h-4 w-4 mr-1" />
+          Saisissez et déplacez les vidéos pour changer leur ordre
+        </p>
 
         {showForm && (
           <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
@@ -178,13 +316,17 @@ export function VideosAdmin() {
                 <input
                   type="text"
                   value={form.youtube_id || ""}
-                  onChange={(e) => setForm({ ...form, youtube_id: e.target.value })}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    const isShort = url.includes("/shorts/");
+                    setForm({ ...form, youtube_id: url, ...(isShort && !form.type ? { type: "Short" } : {}) });
+                  }}
                   className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="https://www.youtube.com/watch?v=..."
+                  placeholder="https://www.youtube.com/watch?v=... ou /shorts/..."
                   required
                 />
                 <p className="mt-1 text-xs text-white/40">
-                  Collez le lien complet de la vidéo YouTube.
+                  Vidéo classique ou Short YouTube. Le type sera auto-rempli pour les Shorts.
                 </p>
               </div>
 
@@ -221,17 +363,6 @@ export function VideosAdmin() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Ordre d'affichage</label>
-                <input
-                  type="number"
-                  value={form.order_index || 1}
-                  onChange={(e) => setForm({ ...form, order_index: parseInt(e.target.value) })}
-                  className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  min="1"
-                />
-              </div>
-
               <button
                 onClick={handleSave}
                 className="flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95"
@@ -243,58 +374,47 @@ export function VideosAdmin() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
-          {videos.length === 0 ? (
-            <div className="col-span-2 rounded-2xl border border-red-500/30 bg-black/50 p-12 text-center backdrop-blur-sm">
-              <p className="text-white/50">Aucune vidéo pour le moment.</p>
-            </div>
-          ) : (
-            videos.map((video) => (
-              <div
-                key={video.id}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-red-500/30 bg-black/50 backdrop-blur-sm transition-all hover:border-primary hover:bg-red-950/40"
-              >
-                <div className="overflow-hidden aspect-video bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.youtube_id}`}
-                    title={video.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="h-full w-full"
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={videos.map((v) => v.id!)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {videos.length === 0 ? (
+                <div className="col-span-full rounded-2xl border border-red-500/30 bg-black/50 p-12 text-center backdrop-blur-sm">
+                  <p className="text-white/50">Aucune vidéo pour le moment.</p>
+                </div>
+              ) : (
+                videos.map((video) => (
+                  <SortableVideo
+                    key={video.id}
+                    video={video}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
                   />
-                </div>
-                <div className="flex flex-1 flex-col p-3 sm:p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium uppercase tracking-wider text-primary">
-                      {video.type}
-                    </span>
-                    <span className="text-xs text-white/40">#{video.order_index}</span>
-                  </div>
-                  <h3 className="font-display text-lg font-semibold mb-2">{video.title}</h3>
-                  {video.description && (
-                    <p className="text-sm text-white/50 mb-4">{video.description}</p>
-                  )}
-                  <div className="mt-auto flex gap-2 pt-2">
-                    <button
-                      onClick={() => handleEdit(video)}
-                      className="flex-1 rounded-full border border-red-500/30 bg-black/40 py-2 hover:bg-red-950/40 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="text-sm">Modifier</span>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(video.id!)}
-                      className="flex-1 rounded-full border border-red-500/30 bg-black/40 py-2 hover:bg-red-950/40 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="text-sm">Supprimer</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                ))
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+        {confirmId !== null && (
+          <ConfirmModal
+            message="Supprimer cet élément ?"
+            onConfirm={() => {
+              if (confirmId !== null) {
+                void doDelete(confirmId);
+              }
+              setConfirmId(null);
+            }}
+            onCancel={() => setConfirmId(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ interface DocumentProps {
 export const Document: React.FC<DocumentProps> = ({ children, path = "/", data }) => {
   const seo: PageSEO = pageSEO[path] || pageSEO["/"];
   const canonicalUrl = `${SITE_URL}${seo.path}`;
-  const ogImageUrl = `${SITE_URL}/images/opengraph.png`;
+  const ogImageUrl = `${SITE_URL}/images/opengraph.jpg`;
   const jsonLd = generateJsonLd(path, data);
 
   return (
@@ -33,9 +33,10 @@ export const Document: React.FC<DocumentProps> = ({ children, path = "/", data }
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:site_name" content={SITE_NAME} />
-        <meta property="og:title" content={seo.title} />
-        <meta property="og:description" content={seo.description} />
+        <meta property="og:title" content={seo.ogTitle ?? seo.title} />
+        <meta property="og:description" content={seo.ogDescription ?? seo.description} />
         <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={`${SITE_NAME} - Fusion Musicale`} />
@@ -43,8 +44,8 @@ export const Document: React.FC<DocumentProps> = ({ children, path = "/", data }
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={canonicalUrl} />
-        <meta name="twitter:title" content={seo.title} />
-        <meta name="twitter:description" content={seo.description} />
+        <meta name="twitter:title" content={seo.ogTitle ?? seo.title} />
+        <meta name="twitter:description" content={seo.ogDescription ?? seo.description} />
         <meta name="twitter:image" content={ogImageUrl} />
         <meta name="twitter:image:alt" content={`${SITE_NAME} - Fusion Musicale`} />
 

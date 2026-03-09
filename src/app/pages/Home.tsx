@@ -1,3 +1,4 @@
+"use client";
 import { ScrollUp } from "@/components/common/ScrollUp";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
 import { Music, ArrowRight, Globe, Waves, ChevronDown } from "lucide-react";
@@ -57,10 +58,10 @@ export function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
         </div>
 
-        <div className="container relative z-10 px-4 pt-20 sm:pt-24 text-center">
+        <div className="container relative z-10 px-4 pt-20 sm:pt-20 md:pt-24 text-center">
           <div className="mx-auto max-w-4xl">
             <p
-              className="electro-glitch mb-3 sm:mb-6 text-lg sm:text-base md:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-primary drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]"
+              className="electro-glitch mb-2 sm:mb-6 text-base sm:text-base md:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] md:tracking-[0.3em] text-primary drop-shadow-[0_0_10px_rgba(220,38,38,0.8)]"
               data-text="Fusions ancestrales x électro organique"
             >
               <span className="block sm:hidden">
@@ -72,27 +73,27 @@ export function Home() {
                 Fusions ancestrales x électro organique
               </span>
             </p>
-            <h1 className="font-chiller text-6xl font-bold leading-tight tracking-tight md:text-8xl lg:text-9xl">
+            <h1 className="font-chiller text-5xl sm:text-6xl font-bold leading-tight tracking-tight md:text-8xl lg:text-9xl">
               <span className="text-primary">TriBa</span>{" "}
               <span className="text-white">MonDo</span>
             </h1>
-            <div className="neon-halo-container mx-auto mt-4 sm:mt-8 max-w-2xl">
-              <p className="neon-glow-text text-lg leading-relaxed md:text-xl">
-                Trio musical qui fait dialoguer chants sources du monde et création originale avec une énergie électro contemporaine. Voix, percussions et textures électroniques s’entrelacent pour créer une pulsation organique, ancrée dans la mémoire et résolument actuelle.
+            <div className="neon-halo-container mx-auto mt-2 sm:mt-8 max-w-2xl">
+              <p className="neon-glow-text text-sm sm:text-lg leading-relaxed md:text-xl">
+                Trio musical qui fait dialoguer chants sources du monde et création originale avec une énergie électro contemporaine. Voix, percussions et textures électroniques s'entrelacent pour créer une pulsation organique, ancrée dans la mémoire et résolument actuelle.
               </p>
               <div className="neon-halo" aria-hidden="true" />
             </div>
-            <div className="mt-10 mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row md:mb-20">
+            <div className="mt-4 sm:mt-10 mb-16 sm:mb-16 md:mb-20 flex flex-col items-center justify-center gap-2 sm:gap-4 sm:flex-row">
               <a
                 href="/musique#videos"
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-base font-semibold text-black transition-all hover:bg-primary-light hover:shadow-lg hover:shadow-primary/20"
+                className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base font-semibold text-black transition-all hover:bg-primary-light hover:shadow-lg hover:shadow-primary/20"
               >
                 Écouter
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
               <a
                 href="/concerts"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-8 py-4 text-base font-medium text-white transition-all hover:border-primary/50 hover:text-primary"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base font-medium text-white transition-all hover:border-primary/50 hover:text-primary"
               >
                 Prochains concerts
               </a>
@@ -101,7 +102,7 @@ export function Home() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce md:bottom-8">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce md:bottom-8">
           <ChevronDown className="h-10 w-10 text-primary/60 md:h-12 md:w-12" strokeWidth={1.5} />
         </div>
       </section>
@@ -143,29 +144,50 @@ export function Home() {
           </ScrollReveal>
 
           <div className="mt-16 grid gap-8 md:grid-cols-3">
-            {highlights.map((item, index) => (
-              <ScrollReveal 
-                key={index} 
-                delay={index * 150} 
-                direction={index === 0 ? "right" : index === 2 ? "left" : "up"}
-                scale={0.9}
-              >
-                <div className={`electro-border ${index === 1 ? 'electro-border-delay-1' : index === 2 ? 'electro-border-delay-2' : ''} electro-card-zoom group h-full rounded-2xl border border-red-500/30 bg-black/50 p-8 text-center backdrop-blur-sm transition-all hover:bg-red-950/40 hover:shadow-2xl hover:shadow-primary/20`}>
-                  <div className="mx-auto mb-4 inline-flex rounded-full bg-primary/10 p-3 text-primary">
-                    {item.icon}
+            {highlights.map((item, index) => {
+              const cardImages = [
+                "/images/cards/chants-monde.jpg",
+                "/images/cards/fusion-musicale.jpg",
+                "/images/cards/improvisation.jpg"
+              ];
+              const cardImage = cardImages[index];
+              
+              return (
+                <ScrollReveal
+                  key={index}
+                  delay={index * 150}
+                  direction={index === 0 ? "right" : index === 2 ? "left" : "up"}
+                  scale={0.9}
+                >
+                  <div className="group [perspective:1000px]">
+                    <div className="relative rounded-2xl border border-red-500/30 transition-all duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+                      <div className="relative rounded-2xl bg-black/50 p-8 text-center backdrop-blur-sm [backface-visibility:hidden]">
+                        <div className="mx-auto mb-4 inline-flex rounded-full bg-primary/10 p-3 text-primary">
+                          {item.icon}
+                        </div>
+                        <h3
+                          className="electro-neon-fluid mb-3 text-sm font-medium uppercase tracking-[0.3em] text-primary/80"
+                          data-text={item.title}
+                        >
+                          {item.title}
+                        </h3>
+                        <p className="text-sm leading-relaxed text-white/50">
+                          {item.description}
+                        </p>
+                      </div>
+                      <div className="absolute inset-0 rounded-2xl bg-black [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                        <img
+                          src={cardImage}
+                          alt={item.title}
+                          className="h-full w-full rounded-2xl object-cover"
+                          style={index === 2 ? { objectPosition: "center 30%" } : undefined}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <h3
-                    className="electro-neon-fluid mb-3 text-sm font-medium uppercase tracking-[0.3em] text-primary/80"
-                    data-text={item.title}
-                  >
-                    {item.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-white/50">
-                    {item.description}
-                  </p>
-                </div>
-              </ScrollReveal>
-            ))}
+                </ScrollReveal>
+              );
+            })}
           </div>
         </div>
       </section>

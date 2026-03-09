@@ -1,4 +1,5 @@
 import { verifyToken } from './auth-utils';
+import type { Env } from '@/types/database';
 
 export async function requireAuth(request: Request): Promise<{ authorized: boolean; username?: string }> {
   const authHeader = request.headers.get('Authorization');
@@ -43,4 +44,22 @@ export function errorResponse(error: string, status = 400) {
 
 export function successResponse(data?: unknown) {
   return jsonResponse({ success: true, data });
+}
+
+export async function logAction(
+  env: Env,
+  username: string,
+  actionType: "CREATE" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT" | "FAILED_LOGIN",
+  resourceType: "Concert" | "Video" | "YouTubeMusic" | "Photo" | "Interview" | "Auth" | "Groupe",
+  description: string
+) {
+  try {
+    await env.DB.prepare(
+      "INSERT INTO audit_logs (username, action_type, resource_type, description) VALUES (?, ?, ?, ?)"
+    )
+      .bind(username, actionType, resourceType, description)
+      .run();
+  } catch (error) {
+    console.error("Failed to log action", error);
+  }
 }

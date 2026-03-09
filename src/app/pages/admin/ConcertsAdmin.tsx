@@ -1,14 +1,32 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import type { Concert } from "@/types/database";
-import { Trash2, Edit, Plus, X, Save, ChevronLeft, Upload, Image as ImageIcon, Calendar, LogOut } from "lucide-react";
+import { Trash2, Edit, Plus, X, Save, ChevronLeft, Image as ImageIcon, Calendar } from "lucide-react";
+import { useRequireAuth } from "@/app/hooks/useRequireAuth";
+import { Toast } from "@/app/components/admin/Toast";
+import { ConfirmModal } from "@/app/components/admin/ConfirmModal";
+
+type ConcertWithTimestamp = Concert & { _timestamp: number };
+
+function getPriceColor(price?: string): string {
+  if (!price) return "text-primary/80";
+  const lower = price.toLowerCase();
+  if (lower.includes("soldé") || lower.includes("sold out") || lower.includes("payé en ligne") || lower.includes("online")) {
+    return "text-green-400";
+  }
+  if (lower.includes("reste") || lower.includes("encore") || lower.includes("encore")) {
+    return "text-orange-400";
+  }
+  return "text-primary/80";
+}
 
 function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; onEdit: (c: Concert) => void; onDelete: (id: number) => void; isPast?: boolean }) {
   return (
     <div
       className={`rounded-2xl border overflow-hidden backdrop-blur-sm transition-all ${
-        isPast 
-          ? "border-white/5 bg-white/[0.01] opacity-60" 
+        isPast
+          ? "border-white/5 bg-white/[0.01] opacity-60"
           : "border-red-500/30 bg-black/50 hover:border-primary hover:bg-red-950/40 shadow-lg shadow-primary/5"
       }`}
     >
@@ -39,7 +57,7 @@ function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; o
             <p className="text-sm text-white/50 line-clamp-2 mb-3">{concert.description}</p>
           )}
           <div className="flex items-center gap-4">
-            <span className={`text-xs font-bold uppercase ${isPast ? "text-white/30" : "text-primary/80"}`}>{concert.price}</span>
+            <span className={`text-xs font-bold uppercase ${isPast ? "text-white/30" : getPriceColor(concert.price)}`}>{concert.price}</span>
             {concert.ticket_url && (
               <a
                 href={concert.ticket_url}
@@ -77,43 +95,29 @@ function ConcertRow({ concert, onEdit, onDelete, isPast }: { concert: Concert; o
 }
 
 export function ConcertsAdmin() {
-  const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [concerts, setConcerts] = useState<ConcertWithTimestamp[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Partial<Concert>>({});
   const [nowTime, setNowTime] = useState(0);
+  const [toast, setToast] = useState<{ message: string; type?: "success" | "error" } | null>(null);
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const { ready, username } = useRequireAuth();
+
+  void username;
 
   useEffect(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     setNowTime(now.getTime());
-    checkAuth();
   }, []);
 
-  async function checkAuth() {
-    try {
-      const res = await fetch("/api/auth/check");
-      const data = await res.json() as { authenticated: boolean };
-      if (!data.authenticated) {
-        window.location.href = "/admin/login";
-        return;
-      }
-      fetchConcerts();
-    } catch {
-      window.location.href = "/admin/login";
+  useEffect(() => {
+    if (ready) {
+      void fetchConcerts();
     }
-  }
-
-  async function handleLogout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.removeItem("admin_access");
-      window.location.href = "/admin/login";
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  }
+  }, [ready]);
 
   async function fetchConcerts() {
     try {
@@ -122,18 +126,18 @@ export function ConcertsAdmin() {
       if (data.success) {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
-        const nowTime = now.getTime();
+        const currentNowTime = now.getTime();
 
         const parseDate = (dateStr: string) => {
-          if (dateStr.includes('/')) {
-            const [d, m, y] = dateStr.split('/').map(Number);
+          if (dateStr.includes("/")) {
+            const [d, m, y] = dateStr.split("/").map(Number);
             return new Date(y, m - 1, d);
           }
           const months: Record<string, number> = {
-            'Jan': 0, 'Fév': 1, 'Mar': 2, 'Avr': 3, 'Mai': 4, 'Juin': 5,
-            'Juil': 6, 'Août': 7, 'Sept': 8, 'Oct': 9, 'Nov': 10, 'Déc': 11
+            Jan: 0, Fév: 1, Mar: 2, Avr: 3, Mai: 4, Juin: 5,
+            Juil: 6, Août: 7, Sept: 8, Oct: 9, Nov: 10, Déc: 11,
           };
-          const parts = dateStr.split(' ');
+          const parts = dateStr.split(" ");
           if (parts.length === 3) {
             const d = parseInt(parts[0]);
             const m = months[parts[1]] || 0;
@@ -143,20 +147,20 @@ export function ConcertsAdmin() {
           return new Date(0);
         };
 
-        const filteredConcerts = data.data.map(c => ({
+        const filteredConcerts: ConcertWithTimestamp[] = data.data.map((c) => ({
           ...c,
-          _timestamp: parseDate(c.date).getTime()
+          _timestamp: parseDate(c.date).getTime(),
         }));
 
         const sorted = filteredConcerts.sort((a, b) => {
-          const isPastA = a._timestamp < nowTime;
-          const isPastB = b._timestamp < nowTime;
+          const isPastA = a._timestamp < currentNowTime;
+          const isPastB = b._timestamp < currentNowTime;
 
           if (!isPastA && isPastB) return -1;
           if (isPastA && !isPastB) return 1;
 
           if (!isPastA && !isPastB) return a._timestamp - b._timestamp;
-          
+
           return b._timestamp - a._timestamp;
         });
 
@@ -164,6 +168,7 @@ export function ConcertsAdmin() {
       }
     } catch (error) {
       console.error("Failed to fetch concerts", error);
+      setToast({ message: "Erreur lors de l'opération", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -185,20 +190,41 @@ export function ConcertsAdmin() {
         setForm({});
         setEditing(null);
         setShowForm(false);
+        setToast({ message: editing !== null ? "Concert mis à jour ✓" : "Concert enregistré ✓" });
+      } else {
+        setToast({ message: "Erreur lors de l'opération", type: "error" });
       }
     } catch (error) {
       console.error("Failed to save concert", error);
+      setToast({ message: "Erreur lors de l'opération", type: "error" });
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce concert ?")) return;
+  function handleDelete(id: number) {
+    setConfirmId(id);
+    return;
+  }
 
+  async function doDelete(id: number) {
     try {
-      await fetch(`/api/concerts/${id}`, { method: "DELETE" });
-      await fetchConcerts();
+      const concertToDelete = concerts.find((c) => c.id === id);
+      const res = await fetch(`/api/concerts/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: concertToDelete?.title,
+          date: concertToDelete?.date,
+        }),
+      });
+      if (res.ok) {
+        await fetchConcerts();
+        setToast({ message: "Concert supprimé ✓" });
+      } else {
+        setToast({ message: "Erreur lors de l'opération", type: "error" });
+      }
     } catch (error) {
       console.error("Failed to delete concert", error);
+      setToast({ message: "Erreur lors de l'opération", type: "error" });
     }
   }
 
@@ -206,14 +232,14 @@ export function ConcertsAdmin() {
     setForm(concert);
     setEditing(concert.id!);
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleNew() {
     setForm({});
     setEditing(null);
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -266,13 +292,6 @@ export function ConcertsAdmin() {
           </h1>
           <div className="flex items-center gap-3 sm:gap-4">
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 rounded-full border border-red-500/30 bg-black/40 px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-red-950/40 transition-all active:scale-95 text-sm sm:text-base"
-            >
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="hidden xs:inline">Déconnexion</span>
-            </button>
-            <button
               onClick={handleNew}
               className="flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 sm:px-6 sm:py-3 font-semibold hover:bg-primary-dark transition-all active:scale-95 text-sm sm:text-base"
             >
@@ -284,7 +303,7 @@ export function ConcertsAdmin() {
         </div>
 
         {showForm && (
-            <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
+          <div className="mb-8 rounded-2xl border border-red-500/30 bg-black/50 p-4 sm:p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-2xl font-bold">
                 {editing !== null ? "Modifier" : "Nouveau"} Concert
@@ -302,10 +321,9 @@ export function ConcertsAdmin() {
             </div>
 
             <div className="flex flex-col gap-6 lg:flex-row">
-              {/* Left Column - Essential Info */}
               <div className="flex-1 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white/80">Titre</label>
+                  <label className="block text-sm font-medium mb-2 text-white/80">Titre *</label>
                   <input
                     type="text"
                     value={form.title || ""}
@@ -318,60 +336,66 @@ export function ConcertsAdmin() {
 
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white/80">Date</label>
+                    <label className="block text-sm font-medium mb-2 text-white/80">Date *</label>
                     <input
                       type="date"
-                      value={form.date && form.date.includes('/') ? form.date.split('/').reverse().join('-') : form.date || ""}
+                      value={form.date && form.date.includes("/") ? form.date.split("/").reverse().join("-") : form.date || ""}
                       onChange={(e) => {
                         const dateVal = e.target.value;
                         if (dateVal) {
-                          const [y, m, d] = dateVal.split('-');
-                          setForm({ ...form, date: `${d}/${m}/${y}` });
+                          const [y, m, d] = dateVal.split("-");
+                          const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+                          const dayName = days[new Date(dateVal).getDay()];
+                          setForm({ ...form, date: `${d}/${m}/${y}`, dayOfWeek: dayName });
                         } else {
                           setForm({ ...form, date: "" });
                         }
                       }}
-                      className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 [color-scheme:dark]"
+                      onKeyDown={(e) => e.preventDefault()}
+                      className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 [color-scheme:dark] cursor-pointer"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white/80">Heure</label>
+                    <label className="block text-sm font-medium mb-2 text-white/80">Heure *</label>
                     <input
                       type="text"
                       value={form.time || ""}
                       onChange={(e) => setForm({ ...form, time: e.target.value })}
                       className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                       placeholder="17h00"
+                      required
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white/80">Jour</label>
+                    <label className="block text-sm font-medium mb-2 text-white/80">Jour *</label>
                     <input
                       type="text"
                       value={form.dayOfWeek || ""}
                       onChange={(e) => setForm({ ...form, dayOfWeek: e.target.value })}
                       className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                       placeholder="Dimanche"
+                      required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white/80">Prix</label>
+                    <label className="block text-sm font-medium mb-2 text-white/80">Prix *</label>
                     <input
                       type="text"
                       value={form.price || ""}
                       onChange={(e) => setForm({ ...form, price: e.target.value })}
                       className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                       placeholder="Entrée libre"
+                      required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white/80">Lieu (Nom)</label>
+                  <label className="block text-sm font-medium mb-2 text-white/80">Lieu (Nom) *</label>
                   <input
                     type="text"
                     value={form.venue || ""}
@@ -383,18 +407,18 @@ export function ConcertsAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white/80">Adresse complète</label>
+                  <label className="block text-sm font-medium mb-2 text-white/80">Adresse complète *</label>
                   <input
                     type="text"
                     value={form.address || ""}
                     onChange={(e) => setForm({ ...form, address: e.target.value })}
                     className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     placeholder="4 Rue Proudhon, 94500 Champigny-sur-Marne"
+                    required
                   />
                 </div>
               </div>
 
-              {/* Right Column - Media & Booking */}
               <div className="flex-1 space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-white/80">Image du concert</label>
@@ -451,10 +475,10 @@ export function ConcertsAdmin() {
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, reservation_required: form.reservation_required ? 0 : 1 })}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${form.reservation_required ? 'bg-primary' : 'bg-white/10'}`}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${form.reservation_required ? "bg-primary" : "bg-white/10"}`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${form.reservation_required ? 'translate-x-5' : 'translate-x-0'}`}
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${form.reservation_required ? "translate-x-5" : "translate-x-0"}`}
                       />
                     </button>
                     <span className="text-sm font-medium text-white/90">Afficher "Réservation Obligatoire"</span>
@@ -477,7 +501,8 @@ export function ConcertsAdmin() {
             <div className="mt-8">
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-semibold text-black hover:bg-primary-dark transition-all active:scale-95"
+                disabled={!form.title || !form.date || !form.time || !form.dayOfWeek || !form.price || !form.venue || !form.address}
+                className="flex items-center gap-2 rounded-full bg-primary px-8 py-3 font-semibold text-black hover:bg-primary-dark transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-5 w-5" />
                 {editing !== null ? "Mettre à jour" : "Enregistrer le concert"}
@@ -487,39 +512,50 @@ export function ConcertsAdmin() {
         )}
 
         <div className="space-y-12">
-          {/* Upcoming Section */}
           <div>
             <h2 className="mb-4 sm:mb-6 flex items-center gap-3 font-display text-xl sm:text-2xl font-bold">
               <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Concerts <span className="text-primary">à venir</span>
             </h2>
             <div className="space-y-4">
-              {concerts.filter(c => (c as any)._timestamp >= nowTime).length === 0 ? (
+              {concerts.filter((c) => c._timestamp >= nowTime).length === 0 ? (
                 <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8 text-center backdrop-blur-sm">
                   <p className="text-white/40 italic">Aucun concert à venir.</p>
                 </div>
               ) : (
-                concerts.filter(c => (c as any)._timestamp >= nowTime).map((concert) => (
+                concerts.filter((c) => c._timestamp >= nowTime).map((concert) => (
                   <ConcertRow key={concert.id} concert={concert} onEdit={handleEdit} onDelete={handleDelete} />
                 ))
               )}
             </div>
           </div>
 
-          {/* Past Section */}
           <div className="pt-8 border-t border-white/5">
             <h2 className="mb-4 sm:mb-6 flex items-center gap-3 font-display text-xl sm:text-2xl font-bold opacity-50">
               <ChevronLeft className="h-6 w-6 text-white/40 rotate-180" />
               Archives <span className="text-white/40">passées</span>
             </h2>
             <div className="space-y-4">
-              {concerts.filter(c => (c as any)._timestamp < nowTime).map((concert) => (
+              {concerts.filter((c) => c._timestamp < nowTime).map((concert) => (
                 <ConcertRow key={concert.id} concert={concert} onEdit={handleEdit} onDelete={handleDelete} isPast />
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      {confirmId !== null && (
+        <ConfirmModal
+          message="Supprimer ce concert ?"
+          onConfirm={() => {
+            void doDelete(confirmId);
+            setConfirmId(null);
+          }}
+          onCancel={() => setConfirmId(null)}
+        />
+      )}
+
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

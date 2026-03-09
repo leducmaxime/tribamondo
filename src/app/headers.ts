@@ -19,7 +19,7 @@ export const setCommonHeaders =
 
     response.headers.set(
       "Content-Security-Policy",
-      `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-${nonce}' https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://source.unsplash.com; frame-ancestors 'self'; frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://w.soundcloud.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com; object-src 'none';`,
+      `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' 'nonce-${nonce}' https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://source.unsplash.com https://img.youtube.com; frame-ancestors 'self'; frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://w.soundcloud.com; connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com; object-src 'none';`,
     );
 
     response.headers.set(

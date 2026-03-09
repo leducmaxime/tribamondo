@@ -25,10 +25,10 @@ export function AdminLogin() {
         localStorage.setItem("admin_access", "true");
         window.location.href = "/admin";
       } else {
-        setError(data.error || "Login failed");
+        setError("Utilisateur ou mot de passe incorrect");
       }
     } catch (err) {
-      setError("Network error");
+      setError("Erreur réseau");
     } finally {
       setLoading(false);
     }
@@ -43,9 +43,11 @@ export function AdminLogin() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-2">Utilisateur</label>
+            <label htmlFor="login-username" className="block text-sm font-medium mb-2">Utilisateur</label>
             <input
+              id="login-username"
               type="text"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -54,9 +56,11 @@ export function AdminLogin() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Mot de passe</label>
+            <label htmlFor="login-password" className="block text-sm font-medium mb-2">Mot de passe</label>
             <input
+              id="login-password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border border-red-500/30 bg-black/40 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"

@@ -27,11 +27,41 @@ export interface YouTubeVideo {
   updated_at?: string;
 }
 
-export interface SoundCloudTrack {
+export interface YouTubeMusicTrack {
   id?: number;
   title: string;
   description?: string;
   url: string;
+  order_index: number;
+  created_at?: string;
+}
+
+export interface GalleryPhoto {
+  id?: number;
+  url: string;
+  description?: string;
+  order_index: number;
+  created_at?: string;
+}
+
+export interface AuditLog {
+  id?: number;
+  username: string;
+  action_type: "CREATE" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT";
+  resource_type: "Concert" | "Video" | "YouTubeMusic" | "Photo" | "Interview" | "Auth";
+  description: string;
+  created_at: string;
+}
+
+export interface InterviewAnswer {
+  name: string;
+  text: string;
+}
+
+export interface Interview {
+  id?: number;
+  question: string;
+  answers: InterviewAnswer[];
   order_index: number;
   created_at?: string;
 }

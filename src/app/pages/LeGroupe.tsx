@@ -1,24 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollUp } from "@/components/common/ScrollUp";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
-import { Drum, Piano, Mic, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Drum, Piano, Mic, ChevronDown } from "lucide-react";
+import type { Interview } from "@/types/database";
 
-const galleryImages = [
-  "image-8.png",
-  "image-14.png",
-  "image-18.png",
-  "image-47.png",
-  "image-49.png",
-  "image-52.png",
-  "image-new-1.png",
-  "image-new-2.png",
-  "image-new-3.png",
-  "image-new-4.png",
-  "image-new-5.png",
-  "image-new-6.png",
-];
 
 const interviewData = [
   {
@@ -233,54 +220,120 @@ const interviewData = [
   },
 ];
 
-const currentMembers = [
+const defaultMembers = [
   {
+    key: "fred",
     name: "Fred André",
     role: "Batterie, percussions & choeur",
     description:
       "Fred capte le mouvement et lui donne forme. Percussionniste, batteur et compositeur, il est le trait d'union entre l'instinct et la maîtrise. De ses voyages musicaux – du rock aux rythmes profonds du Bénin, de Cuba, des musiques latines & Afro-Caribéennes. Il apprend à laisser la pulsation guider la musique. Il façonne l'energy brute, équilibre la dynamique du trio et inscrit chaque pièce dans un flux vivant et organique.",
-    image: "/images/members/fred.png",
+    image: "/images/members/fred.jpg",
+    defaultPosX: 50,
+    defaultPosY: 10,
+    defaultScale: 1,
     icon: <Drum className="h-6 w-6" />,
   },
   {
+    key: "emmanuelle",
     name: "Emmanuelle Gabarra",
     role: "Chant, clavier & percussions",
     description:
       "Emmanuelle fait du chant une matière vivante, en dialogue constant avec le corps et l'espace. Sa voix, tantôt ancrée, tantôt aérienne, danse entre les styles et les émotions, traçant des ponts entre les cultures et les sensibilités. L'improvisation est son terrain de jeu, un espace où elle cherche le timbre juste, celui qui émerge de l'instant et résonne au-delà des mots. À la croisée du souffle et du geste, elle façonne un chant qui vibre et qui rassemble.",
-    image: "/images/members/emmanuelle.png",
+    image: "/images/members/emmanuelle.jpg",
+    defaultPosX: 50,
+    defaultPosY: 20,
+    defaultScale: 1,
     icon: <Mic className="h-6 w-6" />,
   },
   {
+    key: "marcel",
     name: "Marcel Hamon",
     role: "Clavier, percussions & choeur",
     description:
-      "Marcel construit la musique comme on sculpte un espace sonore. Percussionniste, pianiste et compositeur, il assemble rythmes et harmonies avec une précision d'orfèvre, jouant sur les contrastes entre structures solides et textures mouvantes. Il façonne des paysages sonores où la tradition dialogue with des explorations contemporaines, nous entraînant dans un univers évocateur, presque cinématographique.",
-    image: "/images/members/marcel.png",
+      "Marcel construit la musique comme on sculpte un espace sonore. Percussionniste, pianiste et compositeur, il assemble rythmes et harmonies avec une précision d'orfèvre, jouant sur les contrastes entre structures solides et textures mouvantes. Il façonne des paysages sonores où la tradition dialogue avec des explorations contemporaines, nous entraînant dans un univers évocateur, presque cinématographique.",
+    image: "/images/members/marcel.jpg",
+    defaultPosX: 50,
+    defaultPosY: 5,
+    defaultScale: 1.2,
     icon: <Piano className="h-6 w-6" />,
   },
 ];
 
 export function LeGroupe() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [memberPhotos, setMemberPhotos] = useState<Record<string, { url: string; imagePosX: number; imagePosY: number; imageScale: number }>>({});
+  const [siteContent, setSiteContent] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function fetchInterviews() {
+      try {
+        const res = await fetch("/api/interviews");
+        const data = await res.json() as { success: boolean; data: Interview[] };
+        if (data.success && data.data.length > 0) {
+          setInterviews(data.data.sort((a, b) => a.order_index - b.order_index));
+        } else {
+          setInterviews(interviewData.map((item, index) => ({ ...item, order_index: index })));
+        }
+      } catch (error) {
+        console.error("Failed to fetch interviews", error);
+        setInterviews(interviewData.map((item, index) => ({ ...item, order_index: index })));
+      }
+    }
+
+    async function fetchMemberPhotos() {
+      try {
+        const res = await fetch("/api/member-photos");
+        const data = await res.json() as { success: boolean; data: Record<string, { url: string; imagePosX: number; imagePosY: number; imageScale: number }> };
+        if (data.success) {
+          setMemberPhotos(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch member photos", error);
+      }
+    }
+
+    async function fetchSiteContent() {
+      try {
+        const res = await fetch("/api/site-content");
+        const data = await res.json() as { success: boolean; data: Record<string, string> };
+        if (data.success) {
+          setSiteContent(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch site content", error);
+      }
+    }
+
+    fetchInterviews();
+    fetchMemberPhotos();
+    fetchSiteContent();
+  }, []);
+
+  const currentMembers = defaultMembers.map((m) => {
+    const p = memberPhotos[m.key];
+    return {
+      ...m,
+      image: p?.url ?? m.image,
+      imagePosX: p?.imagePosX ?? m.defaultPosX,
+      imagePosY: p?.imagePosY ?? m.defaultPosY,
+      imageScale: p?.imageScale ?? m.defaultScale,
+      description: siteContent[`description_${m.key}`] ?? m.description,
+    };
+  });
+
+  const groupData = memberPhotos["groupe"];
+  const groupPhotoUrl = groupData?.url ?? "/images/galerie/groupe.jpg";
+  const groupPhotoPosX = groupData?.imagePosX ?? 50;
+  const groupPhotoPosY = groupData?.imagePosY ?? 36;
+  const groupPhotoScale = groupData?.imageScale ?? 1;
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const nextImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (selectedImageIndex !== null) {
-      setSelectedImageIndex((selectedImageIndex + 1) % galleryImages.length);
-    }
-  };
 
-  const prevImage = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (selectedImageIndex !== null) {
-      setSelectedImageIndex((selectedImageIndex - 1 + galleryImages.length) % galleryImages.length);
-    }
-  };
+
 
   return (
     <div className="flex flex-col">
@@ -292,6 +345,8 @@ export function LeGroupe() {
             src="/images/galerie/concert-3.png"
             alt="TriBa MonDo - Le Groupe"
             className="h-full w-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/95" />
         </div>
@@ -309,111 +364,129 @@ export function LeGroupe() {
       </section>
 
       {/* Story */}
-      <section className="border-t border-red-500/30 bg-gradient-to-b from-red-950/30 via-red-950/20 to-black py-24">
+      <section className="border-t border-red-500/30 bg-gradient-to-b from-red-950/30 via-red-950/20 to-black pt-12 pb-24">
         <div className="container">
           <div className="mx-auto max-w-3xl">
             <ScrollReveal direction="down">
-              <h2 className="font-display text-3xl font-bold md:text-4xl">
+              <div className="mb-10 overflow-hidden rounded-2xl border border-red-500/20">
+                <img
+                  src={groupPhotoUrl}
+                  alt="TriBa MonDo - Le Groupe"
+                  className="w-full object-cover h-[390px]"
+                  style={{ objectPosition: `${groupPhotoPosX}% ${groupPhotoPosY}%`, transform: `scale(${groupPhotoScale})`, transformOrigin: "center" }}
+                  loading="lazy"
+                />
+              </div>
+              <h2 className="font-display text-3xl font-bold md:text-4xl text-center">
                 Notre <span className="text-primary">histoire</span>
               </h2>
             </ScrollReveal>
             <div className="mt-8 space-y-6 text-white/60 leading-relaxed">
-              <ScrollReveal delay={0} duration={600}>
-                <p>
-                  TriBa MonDo est né d'une rencontre tardive mais nécessaire. Celle de trois musiciens, Emmanuelle, Fred et Marcel, collègues
-                  depuis près de vingt ans au Conservatoire Olivier Messiaen de Champigny-sur-Marne, réunis par un même désir de création libre,
-                  au-delà des cadres et des esthétiques.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={50} duration={600}>
-                <p>
-                  Le trio rassemble Emmanuelle, pianiste classique concertiste et
-                  chanteuse, Marcel, percussionniste compositeur et arrangeur, et Fred,
-                  batteur, percussionniste et compositeur, nourri de musiques du monde.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={100} duration={600}>
-                <p>
-                  Au fil de son parcours, Emmanuelle Gabarra a développé une pratique
-                  transversale mêlant interprétation classique, voix et scène. Elle a
-                  notamment été chanteuse au sein du groupe a cappella Mahna,
-                  consacré aux musiques du monde, carrière de pianiste soliste (Japon,
-                  europe, Amérique du Nord et du Sud) et en duo de quatre mains avec
-                  la pianiste Xenia Maliarevitch, (Festivals en Europe) ainsi que des
-                  collaborations with Bruno Dizien, et Ève Grinsztajn, danseuse à
-                  l'Opéra de Paris, dans des projets croisant musique et mouvement.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={150} duration={600}>
-                <p>
-                  Marcel Hamon a évolué dans le champ de la musique symphonique et
-                  de la création contemporaine, collaborant notamment with Marco
-                  Zambelli, Michel Piquemal et Zahia Ziouani, et développant une
-                  approche ouverte des percussions, à la croisée de l'écriture orchestrale et
-                  des explorations sonores actuelles.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={200} duration={600}>
-                <p>
-                  Fred André s'est forgé une identité rythmique et musicale, au croisement
-                  des musiques actuelles amplifiées et des musiques du monde de
-                  traditions orales. Il a notamment joué au sein de formations telles que
-                  The Barking Dogs (rock alternatif), Sita Lantaa (Afro-Groove) et Taï
-                  Phong (rock progressif), et a collaboré with des percussionnistes issus
-                  de différentes cultures, parmi lesquels Ayrald Petit, Milian Gali (Cuba)
-                  et Jean Adagbenon (Bénin).
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={250} duration={600}>
-                <p>
-                  Trois trajectoires singulières, trois cultures musicales affirmées, mises en
-                  dialogue dans un projet commun : TriBa MonDo, un espace de recherche
-                  et de création fondé sur la circulation des langages musicaux.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={300} duration={600}>
-                <p>
-                  Après avoir existé sous différentes formes — quartet puis quintette —
-                  TriBa MonDo est revenu à une configuration essentielle : rythme,
-                  harmonie, mélodie. Un choix volontaire, favorisant l'écoute, l'interaction
-                  et une écriture plus directe, pensée pour la scène.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={350} duration={600}>
-                <p>
-                  La musique de TriBa MonDo ne juxtapose pas les styles : elle les fait
-                  interférer. Rock, urbain, musiques du monde, classique, blues, soul et
-                  jazz constituent la matière vivante de leur travail. Ces influences,
-                  profondément intégrées, sont le reflet d'années de pratiques, d'écoutes et
-                  de croisements musicaux.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={400} duration={600}>
-                <p>
-                  Le groupe s'inscrit pleinement dans la maturité de ses membres. Il ne
-                  s'agit pas de démontrer, mais de dire — quelque chose du monde, du
-                  temps, du rythme, de la mémoire collective et de l'énergie du live. Des
-                  parcours longtemps développés séparément convergent aujourd'hui with
-                  évidence.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={450} duration={600}>
-                <p>
-                  Sur scène, TriBa MonDo propose une musique organique et évolutive,
-                  où écriture et improvisation cohabitent. Piano et voix, percussions
-                  acoustiques, batterie et textures sonores électroniques se répondent,
-                  construisant une matière musicale en transformation permanente. Le
-                  concert devient un espace de tension et de respiration, où la musique
-                  se façonne en temps réel, au contact du lieu et du public.
-                </p>
-              </ScrollReveal>
-              <ScrollReveal delay={500} duration={600}>
-                <p>
-                  TriBa MonDo n'est pas un aboutissement, mais un territoire en
-                  mouvement : un lieu où les expériences se croisent, où les musiques
-                  dialoguent, et où l'écoute devient matière première.
-                </p>
-              </ScrollReveal>
+              {(siteContent["notre_histoire"] ?? "").split("\n\n").filter(Boolean).map((para, i) => (
+                <ScrollReveal key={i} delay={i * 50} duration={600}>
+                  <p>{para}</p>
+                </ScrollReveal>
+              ))}
+              {!siteContent["notre_histoire"] && (
+                <>
+                  <ScrollReveal delay={0} duration={600}>
+                    <p>
+                      TriBa MonDo est né d'une rencontre tardive mais nécessaire. Celle de trois musiciens, Emmanuelle, Fred et Marcel, collègues
+                      depuis près de vingt ans au Conservatoire Olivier Messiaen de Champigny-sur-Marne, réunis par un même désir de création libre,
+                      au-delà des cadres et des esthétiques.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={50} duration={600}>
+                    <p>
+                      Le trio rassemble Emmanuelle, pianiste classique concertiste et
+                      chanteuse, Marcel, percussionniste compositeur et arrangeur, et Fred,
+                      batteur, percussionniste et compositeur, nourri de musiques du monde.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={100} duration={600}>
+                    <p>
+                      Au fil de son parcours, Emmanuelle Gabarra a développé une pratique
+                      transversale mêlant interprétation classique, voix et scène. Elle a
+                      notamment été chanteuse au sein du groupe a cappella Mahna,
+                      consacré aux musiques du monde, carrière de pianiste soliste (Japon,
+                      europe, Amérique du Nord et du Sud) et en duo de quatre mains avec
+                      la pianiste Xenia Maliarevitch, (Festivals en Europe) ainsi que des
+                      collaborations with Bruno Dizien, et Ève Grinsztajn, danseuse à
+                      l'Opéra de Paris, dans des projets croisant musique et mouvement.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={150} duration={600}>
+                    <p>
+                      Marcel Hamon a évolué dans le champ de la musique symphonique et
+                      de la création contemporaine, collaborant notamment with Marco
+                      Zambelli, Michel Piquemal et Zahia Ziouani, et développant une
+                      approche ouverte des percussions, à la croisée de l'écriture orchestrale et
+                      des explorations sonores actuelles.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={200} duration={600}>
+                    <p>
+                      Fred André s'est forgé une identité rythmique et musicale, au croisement
+                      des musiques actuelles amplifiées et des musiques du monde de
+                      traditions orales. Il a notamment joué au sein de formations telles que
+                      The Barking Dogs (rock alternatif), Sita Lantaa (Afro-Groove) et Taï
+                      Phong (rock progressif), et a collaboré with des percussionnistes issus
+                      de différentes cultures, parmi lesquels Ayrald Petit, Milian Gali (Cuba)
+                      et Jean Adagbenon (Bénin).
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={250} duration={600}>
+                    <p>
+                      Trois trajectoires singulières, trois cultures musicales affirmées, mises en
+                      dialogue dans un projet commun : TriBa MonDo, un espace de recherche
+                      et de création fondé sur la circulation des langages musicaux.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={300} duration={600}>
+                    <p>
+                      Après avoir existé sous différentes formes — quartet puis quintette —
+                      TriBa MonDo est revenu à une configuration essentielle : rythme,
+                      harmonie, mélodie. Un choix volontaire, favorisant l'écoute, l'interaction
+                      et une écriture plus directe, pensée pour la scène.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={350} duration={600}>
+                    <p>
+                      La musique de TriBa MonDo ne juxtapose pas les styles : elle les fait
+                      interférer. Rock, urbain, musiques du monde, classique, blues, soul et
+                      jazz constituent la matière vivante de leur travail. Ces influences,
+                      profondément intégrées, sont le reflet d'années de pratiques, d'écoutes et
+                      de croisements musicaux.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={400} duration={600}>
+                    <p>
+                      Le groupe s'inscrit pleinement dans la maturité de ses membres. Il ne
+                      s'agit pas de démontrer, mais de dire — quelque chose du monde, du
+                      temps, du rythme, de la mémoire collective et de l'énergie du live. Des
+                      parcours longtemps développés séparément convergent aujourd'hui with
+                      évidence.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={450} duration={600}>
+                    <p>
+                      Sur scène, TriBa MonDo propose une musique organique et évolutive,
+                      où écriture et improvisation cohabitent. Piano et voix, percussions
+                      acoustiques, batterie et textures sonores électroniques se répondent,
+                      construisant une matière musicale en transformation permanente. Le
+                      concert devient un espace de tension et de respiration, où la musique
+                      se façonne en temps réel, au contact du lieu et du public.
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal delay={500} duration={600}>
+                    <p>
+                      TriBa MonDo n'est pas un aboutissement, mais un territoire en
+                      mouvement : un lieu où les expériences se croisent, où les musiques
+                      dialoguent, et où l'écoute devient matière première.
+                    </p>
+                  </ScrollReveal>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -449,6 +522,8 @@ export function LeGroupe() {
                       src={member.image}
                       alt={member.name}
                       className="h-full w-full object-cover"
+                      style={{ objectPosition: `${member.imagePosX}% ${member.imagePosY}%`, transform: `scale(${member.imageScale})`, transformOrigin: "center" }}
+                      loading="lazy"
                     />
                   </div>
                   <h3 className="font-display text-2xl font-semibold transition-colors duration-300 group-hover:text-white md:text-3xl">
@@ -482,7 +557,7 @@ export function LeGroupe() {
             </ScrollReveal>
 
             <div className="space-y-6">
-              {interviewData.map((item, qIndex) => (
+              {interviews.map((item, qIndex) => (
                 <ScrollReveal key={qIndex} delay={qIndex * 50} direction="up">
                   <div 
                     className={`overflow-hidden rounded-2xl border transition-all duration-500 ${
@@ -541,64 +616,6 @@ export function LeGroupe() {
                 </ScrollReveal>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Photos Section */}
-      <section className="border-t border-red-500/30 bg-black py-24">
-        <div className="container">
-          <ScrollReveal direction="down">
-            <div className="mx-auto max-w-3xl text-center mb-16">
-              <h2 className="font-display text-3xl font-bold md:text-4xl">
-                Nos <span className="text-primary">Photos</span>
-              </h2>
-              <p className="mt-4 text-white/50">
-                Captures d'instants, de vibrations et de rencontres.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryImages.map((filename, index) => (
-              <ScrollReveal 
-                key={filename} 
-                delay={index * 100} 
-                direction="up" 
-                scale={0.9}
-              >
-                <div 
-                  onClick={() => setSelectedImageIndex(index)}
-                  className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl border border-red-500/20 bg-red-950/5 transition-all hover:border-primary/50"
-                >
-                  <img
-                    src={`/images/galerie/${filename}`}
-                    alt={`TriBa MonDo - Photo ${index + 1}`}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Association */}
-      <section className="border-t border-red-500/30 bg-gradient-to-b from-red-950/30 via-red-950/20 to-black py-24">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <ScrollReveal direction="up" scale={0.8}>
-              <h2 className="font-display text-3xl font-bold md:text-4xl">
-                L'<span className="text-primary">association</span>
-              </h2>
-              <p className="mt-6 text-white/60 leading-relaxed">
-                TRIBA MONDO PRODUCTION est une association loi 1901 créée en décembre 2025,
-                basée au 10 rue Georges Wilson à Champigny-sur-Marne (94500).
-                Elle est dédiée à la promotion du groupe, à l'organisation de concerts
-                et à la participation à des échanges culturels en France et à l'étranger.
-              </p>
-            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -715,46 +732,25 @@ export function LeGroupe() {
         </div>
       </section>
 
-      {/* Lightbox Modal */}
-      {selectedImageIndex !== null && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm transition-all animate-in fade-in duration-300"
-          onClick={() => setSelectedImageIndex(null)}
-        >
-          <button 
-            className="absolute top-6 right-6 z-[110] text-primary transition-transform hover:scale-110 p-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedImageIndex(null);
-            }}
-          >
-            <X className="h-10 w-10 stroke-[3px]" />
-          </button>
-
-          {/* Navigation Arrows */}
-          <button
-            className="absolute left-4 top-1/2 z-[110] -translate-y-1/2 rounded-full bg-black/50 p-3 text-white/50 transition-all hover:bg-primary hover:text-black"
-            onClick={prevImage}
-          >
-            <ChevronLeft className="h-8 w-8" />
-          </button>
-          <button
-            className="absolute right-4 top-1/2 z-[110] -translate-y-1/2 rounded-full bg-black/50 p-3 text-white/50 transition-all hover:bg-primary hover:text-black"
-            onClick={nextImage}
-          >
-            <ChevronRight className="h-8 w-8" />
-          </button>
-          
-          <div className="relative max-h-[70vh] max-w-[80vw] overflow-hidden rounded-xl shadow-2xl">
-            <img
-              key={selectedImageIndex}
-              src={`/images/galerie/${galleryImages[selectedImageIndex]}`}
-              alt="TriBa MonDo full preview"
-              className="max-h-[70vh] w-auto object-contain animate-in zoom-in-95 duration-300"
-            />
+      {/* Association */}
+      <section className="border-t border-red-500/30 bg-gradient-to-b from-red-950/30 via-red-950/20 to-black py-24">
+        <div className="container">
+          <div className="mx-auto max-w-3xl text-center">
+            <ScrollReveal direction="up" scale={0.8}>
+              <h2 className="font-display text-3xl font-bold md:text-4xl">
+                L'<span className="text-primary">association</span>
+              </h2>
+              <p className="mt-6 text-white/60 leading-relaxed">
+                TRIBA MONDO PRODUCTION est une association loi 1901 créée en décembre 2025,
+                basée au 10 rue Georges Wilson à Champigny-sur-Marne (94500).
+                Elle est dédiée à la promotion du groupe, à l'organisation de concerts
+                et à la participation à des échanges culturels en France et à l'étranger.
+              </p>
+            </ScrollReveal>
           </div>
         </div>
-      )}
-    </div>
+      </section>
+
+      </div>
   );
 }

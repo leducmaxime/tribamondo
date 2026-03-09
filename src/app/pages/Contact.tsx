@@ -14,6 +14,12 @@ const socialLinks = [
     url: "https://www.facebook.com/61575204444067/",
   },
   {
+    name: "LinkedIn",
+    handle: "TriBa MonDo",
+    url: "https://www.linkedin.com/company/triba-mondo/",
+  },
+  {
+    name: "YouTube",
     name: "YouTube",
     handle: "@TriBaMonDo",
     url: "https://www.youtube.com/@TriBaMonDo",

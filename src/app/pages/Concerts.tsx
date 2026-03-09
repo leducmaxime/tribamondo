@@ -80,25 +80,20 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
       >
         {concert.image_url && (
           <div className="md:hidden h-44 w-full overflow-hidden border-b border-white/5 relative">
-            <img 
-              src={concert.image_url} 
-              alt="" 
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            <img
+              src={concert.image_url}
+              alt=""
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         )}
-        <div className={`flex items-center justify-between border-b border-white/5 px-6 py-6 transition-colors duration-500 ${!concert.isPast ? "bg-white/[0.03] group-hover:bg-primary/5" : ""}`}>
+          <div className={`flex items-center justify-between border-b border-white/5 px-6 py-6 ${!concert.isPast ? "bg-white/[0.03]" : ""}`}>
           <div className="flex items-center gap-5">
-            <div className={`relative flex h-16 w-16 items-center justify-center rounded-xl border transition-all duration-500 ${
-              concert.isPast 
-                ? "border-white/10 bg-white/5" 
-                : "border-primary/30 bg-primary/10 group-hover:bg-white group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]"
-            }`}>
-              <span className={`font-sans text-3xl font-bold transition-all duration-500 ${concert.isPast ? "text-white/40" : "text-primary group-hover:text-black group-hover:scale-110"}`}>
-                {day}
-              </span>
-            </div>
+            <span className={`font-chiller text-4xl font-bold transition-colors duration-300 ${concert.isPast ? "text-white/40" : "text-primary group-hover:text-white"}`}>
+              {day}
+            </span>
 
             <div className="flex flex-col">
               <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${concert.isPast ? "text-white/30" : "text-primary group-hover:text-primary-light"}`}>
@@ -121,7 +116,7 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
           <div className="flex gap-6">
             {concert.image_url && (
               <div className="hidden md:block h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-primary/20 bg-black/40">
-                <img src={concert.image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <img src={concert.image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
               </div>
             )}
             <div className="flex-1">
@@ -150,39 +145,41 @@ function ConcertCard({ concert, index }: { concert: Concert; index: number }) {
             {concert.description}
           </p>
 
-          <div className="mt-auto pt-8 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium text-white/60">
-              <Ticket className="h-4 w-4 text-primary/60" />
-              <span>{concert.price}</span>
-            </div>
-            
-            {!concert.isPast && (
-              <div className="flex flex-col items-end gap-2">
-                {Boolean(concert.reservation_required) && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">
-                    Réservation obligatoire
-                  </span>
-                )}
-                {concert.reservation_phone ? (
-                  <a
-                    href={`tel:${concert.reservation_phone.replace(/\s/g, '')}`}
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 text-xs font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-black hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
-                  >
-                    <Phone className="h-3 w-3" />
-                    {concert.reservation_phone}
-                  </a>
-                ) : concert.ticketUrl ? (
-                  <a
-                    href={concert.ticketUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-primary/40 bg-primary/5 px-6 text-xs font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-black hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
-                  >
-                    Billets
-                  </a>
-                ) : null}
+          <div className="mt-auto flex flex-col justify-end gap-2 pt-6">
+            <div className="flex items-end justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-white/60 mb-2">
+                <Ticket className="h-4 w-4 text-primary/60" />
+                <span>{concert.price}</span>
               </div>
-            )}
+              
+              {!concert.isPast && (
+                <div className="flex flex-col items-end gap-2">
+                  {Boolean(concert.reservation_required) && (
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary animate-pulse">
+                      Réservation obligatoire
+                    </span>
+                  )}
+                  {concert.reservation_phone ? (
+                    <a
+                      href={`tel:${concert.reservation_phone.replace(/\s/g, '')}`}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-primary/40 bg-primary/5 px-4 text-xs font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-black hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+                    >
+                      <Phone className="h-3 w-3" />
+                      {concert.reservation_phone}
+                    </a>
+                  ) : concert.ticketUrl ? (
+                    <a
+                      href={concert.ticketUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-10 items-center justify-center rounded-full border border-primary/40 bg-primary/5 px-6 text-xs font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-black hover:shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+                    >
+                      Billets
+                    </a>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -208,17 +205,19 @@ export function Concerts({ concerts: dbConcerts }: { concerts?: Concert[] }) {
     <div className="flex flex-col">
       <ScrollUp />
 
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-20 md:min-h-[50vh]">
+      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-20 md:min-h-[60vh]">
         <div className="absolute inset-0">
           <img
             src="/images/galerie/concert-4.png"
             alt="TriBa MonDo - Concerts et événements live"
             className="h-full w-full object-cover"
+            fetchPriority="high"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-black/80" />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         </div>
-        <div className="container relative z-10 pt-20 pb-10 text-center">
+        <div className="container relative z-10 py-20 text-center">
           <p className="electro-glitch mb-4 text-sm font-medium uppercase tracking-[0.3em] text-primary/80" data-text="Événements & Concerts">
             Événements &amp; Concerts
           </p>
@@ -231,9 +230,11 @@ export function Concerts({ concerts: dbConcerts }: { concerts?: Concert[] }) {
       <section className="bg-black pt-10 pb-24">
         <div className="container">
           {upcomingConcerts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-6">
               {upcomingConcerts.map((concert, index) => (
-                <ConcertCard key={index} concert={concert} index={index} />
+                <div key={index} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+                  <ConcertCard concert={concert} index={index} />
+                </div>
               ))}
             </div>
           ) : (
@@ -294,6 +295,7 @@ export function Concerts({ concerts: dbConcerts }: { concerts?: Concert[] }) {
           src="/images/galerie/image-18.png"
           alt="TriBa MonDo - Concert Live"
           className="h-full w-full object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#080808] via-transparent to-black" />
       </section>
